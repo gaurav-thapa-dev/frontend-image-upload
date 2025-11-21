@@ -22,11 +22,24 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Log request for debugging
+    console.log('Request received:', {
+      method: req.method,
+      hasBody: !!req.body,
+      bodyType: typeof req.body,
+    });
+
     const { images } = req.body;
 
     if (!images || !Array.isArray(images) || images.length === 0) {
-      return res.status(400).json({ error: 'Images array is required' });
+      console.error('Invalid request:', { images });
+      return res.status(400).json({ 
+        error: 'Images array is required',
+        received: req.body 
+      });
     }
+
+    console.log(`Processing ${images.length} image(s)`);
 
     // Get Shopify credentials from environment variables
     const shopifyStore = process.env.SHOPIFY_STORE;
@@ -96,6 +109,11 @@ export default async function handler(req, res) {
 
         if (!response.ok) {
           const errorText = await response.text();
+          console.error('Shopify API error:', {
+            status: response.status,
+            statusText: response.statusText,
+            error: errorText,
+          });
           throw new Error(`Shopify API error: ${response.status} - ${errorText}`);
         }
 
