@@ -1,0 +1,22 @@
+{
+  "name": "shopify-image-upload",
+  "version": "1.0.0",
+  "description": "Shopify image upload via Admin API with Vercel serverless function",
+  "main": "api/upload-images.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "keywords": [
+    "shopify",
+    "image-upload",
+    "vercel",
+    "serverless"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.x"
+  }
+}
+
