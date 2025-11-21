@@ -65,22 +65,24 @@ export default async function handler(req, res) {
         // Convert base64 to buffer
         const imageBuffer = Buffer.from(base64Data, 'base64');
 
-        // Create multipart/form-data manually for Node.js
-        const boundary = `----WebKitFormBoundary${Math.random().toString(36).substring(2, 15)}`;
-        const formDataParts = [];
-
+        // Create multipart/form-data with proper boundary
+        // Boundary must not contain spaces and should be unique
+        const boundary = `----WebKitFormBoundary${Math.random().toString(36).substring(2, 15)}${Date.now()}`;
+        
+        // Build multipart body
+        const CRLF = '\r\n';
+        const bodyParts = [];
+        
         // Add file field
-        formDataParts.push(
-          `--${boundary}\r\n` +
-          `Content-Disposition: form-data; name="file"; filename="${filename}"\r\n` +
-          `Content-Type: ${contentType}\r\n\r\n`
-        );
-        formDataParts.push(imageBuffer);
-        formDataParts.push(`\r\n--${boundary}--\r\n`);
+        bodyParts.push(`--${boundary}${CRLF}`);
+        bodyParts.push(`Content-Disposition: form-data; name="file"; filename="${filename}"${CRLF}`);
+        bodyParts.push(`Content-Type: ${contentType}${CRLF}${CRLF}`);
+        bodyParts.push(imageBuffer);
+        bodyParts.push(`${CRLF}--${boundary}--${CRLF}`);
 
-        // Combine all parts into a single buffer
-        const formDataBuffer = Buffer.concat(
-          formDataParts.map(part => Buffer.isBuffer(part) ? part : Buffer.from(part, 'utf-8'))
+        // Combine into single buffer
+        const bodyBuffer = Buffer.concat(
+          bodyParts.map(part => Buffer.isBuffer(part) ? part : Buffer.from(part, 'utf-8'))
         );
 
         // Upload to Shopify
@@ -88,10 +90,10 @@ export default async function handler(req, res) {
           method: 'POST',
           headers: {
             'X-Shopify-Access-Token': shopifyAccessToken,
+            'Accept': 'application/json',
             'Content-Type': `multipart/form-data; boundary=${boundary}`,
-            'Content-Length': formDataBuffer.length.toString(),
           },
-          body: formDataBuffer,
+          body: bodyBuffer,
         });
 
         if (!response.ok) {
